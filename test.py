@@ -13,8 +13,9 @@ import numpy as np
 transform = transforms.Compose([transforms.ToTensor()])
 
 training_set = datasets.EMNIST(root="./data", split="byclass", train=True,  download=False, transform=transform)
-training_set = data_utils.Subset(training_set, torch.arange(10000))
 test_set = datasets.EMNIST(root="./data", split="byclass", train=False,  download=False, transform=transform)
+# NOTE: Temporarily only working with a subset of the dataset
+training_set = data_utils.Subset(training_set, torch.arange(10000))
 test_set = data_utils.Subset(test_set, torch.arange(10000))
 
 train_dl = DataLoader(training_set, batch_size=2000)
