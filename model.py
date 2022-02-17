@@ -50,7 +50,7 @@ def test(model, dataloader):
     corrects = []
     for (im,y) in dataloader:
         im = torch.permute(im, (0, 1, 3, 2))
-        corrects.append(model(im) == y)
+        corrects.append(model(im).argmax(dim=1) == y)
 
-    acc = np.mean(corrects)
+    acc = torch.cat(corrects).detach().numpy().mean()
     return acc
