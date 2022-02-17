@@ -32,7 +32,7 @@ def train(model, dataloader, lr, weight_decay, n_epochs=10):
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
     criterion = torch.nn.CrossEntropyLoss()
 
-    for epoch in trange(n_epochs):
+    for epoch in range(n_epochs):
         for batch in tqdm(dataloader):
             im = torch.permute(batch[0], (0, 1, 3, 2))
             optimizer.zero_grad()
@@ -41,6 +41,7 @@ def train(model, dataloader, lr, weight_decay, n_epochs=10):
             loss = criterion(preds, batch[1])
             loss.backward()
             optimizer.step()
+            #print('\r', "stuff", end = '')
 
 
     #print(np.mean(preds==y))

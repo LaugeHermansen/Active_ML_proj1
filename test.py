@@ -18,4 +18,4 @@ net = model.CNN_class(width=4, depth=4)
 
 model.train(net, train_dl, lr=0.001, weight_decay=0.01, n_epochs=2)
 
-print(model.train(net, test_dl))
+print(model.test(net, test_dl))
