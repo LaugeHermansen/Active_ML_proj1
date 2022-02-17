@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from torch import nn
-
+from tqdm import tqdm, trange
 
 
 class CNN_class(nn.Module):
@@ -14,16 +14,16 @@ class CNN_class(nn.Module):
 
         layers = []
         for i in range(1, self.depth+1):
-            layers.append(nn.Conv2d(1, 2**i, kernel_size=3))#, padding=1))
+            layers.append(nn.Conv2d(2**(i-1), 2**i, kernel_size=3))#, padding=1))
             #layers.append(nn.MaxPool2d(2))
             layers.append(nn.ReLU(inplace=True))
 
         self.CNN = nn.Sequential(*layers)
-
-        self.linear = nn.Linear(2**depth * (self.input_features-2*depth)**2, n_classes)
+        self.linear = nn.Linear(2**self.depth * (self.input_features-2*self.depth)**2, n_classes)
 
     def forward(self, x):
         x = self.CNN(x)
+        x = torch.flatten(x, start_dim=1)
         x = self.linear(x)
         return x
 
@@ -32,8 +32,8 @@ def train(model, dataloader, lr, weight_decay, n_epochs=10):
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
     criterion = torch.nn.CrossEntropyLoss()
 
-    for epoch in range(n_epochs):
-        for batch in dataloader:
+    for epoch in trange(n_epochs):
+        for batch in tqdm(dataloader):
             im = torch.permute(batch[0], (0, 1, 3, 2))
             optimizer.zero_grad()
 
