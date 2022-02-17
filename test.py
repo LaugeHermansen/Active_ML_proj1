@@ -15,8 +15,8 @@ transform = transforms.Compose([transforms.ToTensor()])
 training_set = datasets.EMNIST(root="./data", split="byclass", train=True,  download=False, transform=transform)
 test_set = datasets.EMNIST(root="./data", split="byclass", train=False,  download=False, transform=transform)
 # NOTE: Temporarily only working with a subset of the dataset
-training_set = data_utils.Subset(training_set, torch.arange(10000))
-test_set = data_utils.Subset(test_set, torch.arange(10000))
+training_set = data_utils.Subset(training_set, torch.arange(40000))
+test_set = data_utils.Subset(test_set, torch.arange(40000))
 
 train_dl = DataLoader(training_set, batch_size=2000)
 test_dl = DataLoader(test_set, batch_size=2000)
@@ -26,7 +26,7 @@ accuracies = []
 hypers = [np.array([0.001, 0.01])]
 acquisitions = []
 
-for i in range(100):
+for i in range(40):
     # Instantiate and test model
     net = model.CNN_class(width=4, depth=4)
     model.train(net, train_dl, lr=hypers[-1][0], weight_decay=hypers[-1][1], n_epochs=2)
@@ -38,7 +38,8 @@ for i in range(100):
     # Get next hyper parameters
     hyper_next, acqst = get_next_hyperparameters(
         torch.tensor(hypers).reshape(-1, 2),
-        torch.tensor(accuracies).reshape(-1, 1)
+        torch.tensor(accuracies).reshape(-1, 1),
+        # bounds = torch.stack([torch.zeros(2), torch.ones(2)])
     )
     
     #Save next hyperparameters and associated acquisition
@@ -48,6 +49,7 @@ for i in range(100):
 
 
 #%%
+%matplotlib widget
 h = np.array(hypers)
 ax = plt.axes(projection='3d')
 

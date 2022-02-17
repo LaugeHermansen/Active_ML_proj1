@@ -21,7 +21,7 @@ def get_next_hyperparameters(X, y, bounds = None):
 
     # TODO: Implement HyBO
     # TODO: Implement support for arbitrary acquisition function
-    acquisition_fn = UpperConfidenceBound(gp, beta=0.1)
+    acquisition_fn = UpperConfidenceBound(gp, beta=0.01)
     candidate, acq_value = optimize_acqf(
         acquisition_fn, bounds=bounds, q=1, num_restarts=5, raw_samples=20
     )
