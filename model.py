@@ -33,7 +33,8 @@ def train(model, dataloader, lr, weight_decay, n_epochs=10):
     criterion = torch.nn.CrossEntropyLoss()
 
     for epoch in range(n_epochs):
-        for batch in tqdm(dataloader):
+        # for batch in tqdm(dataloader):
+        for batch in dataloader:
             im = torch.permute(batch[0], (0, 1, 3, 2))
             optimizer.zero_grad()
 

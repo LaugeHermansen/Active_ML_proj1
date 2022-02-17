@@ -18,8 +18,8 @@ test_set = datasets.EMNIST(root="./data", split="byclass", train=False,  downloa
 training_set = data_utils.Subset(training_set, torch.arange(40000))
 test_set = data_utils.Subset(test_set, torch.arange(40000))
 
-train_dl = DataLoader(training_set, batch_size=2000)
-test_dl = DataLoader(test_set, batch_size=2000)
+train_dl = DataLoader(training_set, batch_size=200)
+test_dl = DataLoader(test_set, batch_size=200)
 
 #%%
 accuracies = []
@@ -39,13 +39,22 @@ for i in range(40):
     hyper_next, acqst = get_next_hyperparameters(
         torch.tensor(hypers).reshape(-1, 2),
         torch.tensor(accuracies).reshape(-1, 1),
-        # bounds = torch.stack([torch.zeros(2), torch.ones(2)])
+        bounds = torch.tensor([[0.00001, 0.0001],
+                               [0.035, 0.04]])
     )
     
     #Save next hyperparameters and associated acquisition
     hypers.append(hyper_next.detach().numpy().squeeze())
     acquisitions.append(acqst)
-    print(i)
+    print(i, accuracies[-1], hypers[-2][0], hypers[-2][1])
+    if len(hypers) > 3:
+        h = np.array(hypers)
+        ax = plt.axes(projection='3d')
+
+        ax.view_init(30, 120)
+        ax.plot_trisurf(h[:-1, 0], h[:-1, 1], accuracies, cmap="viridis")
+        ax.scatter(h[:-1, 0], h[:-1, 1], accuracies)
+        plt.show()
 
 
 #%%
@@ -56,3 +65,4 @@ ax = plt.axes(projection='3d')
 ax.view_init(30, 120)
 ax.plot_trisurf(h[:-1, 0], h[:-1, 1], accuracies, cmap="viridis")
 ax.scatter(h[:-1, 0], h[:-1, 1], accuracies)
+plt.show()
