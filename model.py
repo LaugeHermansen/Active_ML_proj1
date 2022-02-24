@@ -14,7 +14,7 @@ class CNN_class(nn.Module):
 
         layers = []
         for i in range(1, self.depth+1):
-            layers.append(nn.Conv2d(2**(i-1), 2**i, kernel_size=3))#, padding=1))
+            layers.append(nn.Conv2d(self.width*(2**(i-1)), self.width*(2**i), kernel_size=3))#, padding=1))
             #layers.append(nn.MaxPool2d(2))
             layers.append(nn.ReLU(inplace=True))
 
