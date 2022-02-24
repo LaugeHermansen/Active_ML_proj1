@@ -1,13 +1,16 @@
 def tqdm(iterable, layer = 0, freq = 0.1, width = 50, n_child_layers = 5):
     """
-    inputs:
+    Parameters
+    ---------
     iterable:       you know what it is
     layer:          the line nr on which the progress bar will print - 0-indexed
     freq:           the frequency with which the progress bar updates
     width:          width of progress bar
     n_child_layers: how many nested loops inside this one - only works in layer = 0
 
-    output: generator object that returns the elements in iterable, while printing the progress bar
+    Return
+    -------
+    generator object that returns the elements in iterable, while printing the progress bar
     """
     n = len(iterable)
     lines_temp = ["|"]*width
