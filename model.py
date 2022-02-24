@@ -13,13 +13,22 @@ class CNN_class(nn.Module):
         self.depth = depth
 
         layers = []
-        for i in range(1, self.depth+1):
-            layers.append(nn.Conv2d(2**(i-1), 2**i, kernel_size=3))#, padding=1))
-            #layers.append(nn.MaxPool2d(2))
+        layers.append(nn.Conv2d(1, width * 2 ** 1, kernel_size=3, padding=1))
+        layers.append(nn.MaxPool2d(2))
+        layers.append(nn.ReLU(inplace=True))
+
+        for i in range(2, self.depth+1):
+            layers.append(nn.Conv2d(width*2**(i-1), width*2**i, kernel_size=3, padding=1))
+            layers.append(nn.MaxPool2d(2))
             layers.append(nn.ReLU(inplace=True))
 
+        temp = self.input_features
+        for i in range(depth):
+            temp = temp // 2
+
         self.CNN = nn.Sequential(*layers)
-        self.linear = nn.Linear(2**self.depth * (self.input_features-2*self.depth)**2, n_classes)
+        print(width*2**self.depth*temp**2)
+        self.linear = nn.Linear(width*2**self.depth*temp**2, n_classes)
 
     def forward(self, x):
         x = self.CNN(x)
@@ -33,8 +42,7 @@ def train(model, dataloader, lr, weight_decay, n_epochs=10):
     criterion = torch.nn.CrossEntropyLoss()
 
     for epoch in range(n_epochs):
-        # for batch in tqdm(dataloader):
-        for batch in dataloader:
+        for batch in tqdm(dataloader):
             im = torch.permute(batch[0], (0, 1, 3, 2))
             optimizer.zero_grad()
 

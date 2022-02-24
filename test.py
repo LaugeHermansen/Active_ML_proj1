@@ -58,7 +58,7 @@ for i in range(40):
 
 
 #%%
-%matplotlib widget
+#%matplotlib widget
 h = np.array(hypers)
 ax = plt.axes(projection='3d')
 

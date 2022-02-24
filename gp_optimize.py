@@ -1,12 +1,13 @@
 import torch
+import numpy as np
 from botorch.models import SingleTaskGP
 from botorch.fit import fit_gpytorch_model
 from gpytorch.mlls import ExactMarginalLogLikelihood
-from botorch.optim import optimize_acqf
+from botorch.optim import optimize_acqf_mixed
 from botorch.acquisition import UpperConfidenceBound, ExpectedImprovement
 
 
-def get_next_hyperparameters(X, y, bounds = None):
+def get_next_hyperparameters(X, y, bounds = None, feature_type=None):
     # Introduce GP
     gp = SingleTaskGP(X, y)
 
@@ -23,7 +24,12 @@ def get_next_hyperparameters(X, y, bounds = None):
     # TODO: Implement support for arbitrary acquisition function
     # acquisition_fn = UpperConfidenceBound(gp, beta=3)
     acquisition_fn = ExpectedImprovement(gp, best_f=max(y))
-    candidate, acq_value = optimize_acqf(
+
+
+    #for i, is_discrete in enumerate(feature_type):
+
+
+    candidate, acq_value = optimize_acqf_mixed(
         acquisition_fn, bounds=bounds, q=1, num_restarts=1, raw_samples=1
     )
 
