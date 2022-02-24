@@ -9,26 +9,26 @@ class CNN_class(nn.Module):
         super().__init__()
 
         self.input_features = input_features
-        self.width = width
-        self.depth = depth
+        self.width = int(width)
+        self.depth = int(depth)
 
         layers = []
-        layers.append(nn.Conv2d(1, width * 2 ** 1, kernel_size=3, padding=1))
+        layers.append(nn.Conv2d(1, self.width * 2, kernel_size=3, padding=1))
         layers.append(nn.MaxPool2d(2))
         layers.append(nn.ReLU(inplace=True))
 
         for i in range(2, self.depth+1):
-            layers.append(nn.Conv2d(width*2**(i-1), width*2**i, kernel_size=3, padding=1))
+            layers.append(nn.Conv2d(self.width*2**(i-1), self.width*2**i, kernel_size=3, padding=1))
             layers.append(nn.MaxPool2d(2))
             layers.append(nn.ReLU(inplace=True))
 
         temp = self.input_features
-        for i in range(depth):
+        for i in range(self.depth):
             temp = temp // 2
 
         self.CNN = nn.Sequential(*layers)
-        print(width*2**self.depth*temp**2)
-        self.linear = nn.Linear(width*2**self.depth*temp**2, n_classes)
+        #print(width*2**self.depth*temp**2)
+        self.linear = nn.Linear(self.width*2**self.depth*temp**2, n_classes)
 
     def forward(self, x):
         x = self.CNN(x)
