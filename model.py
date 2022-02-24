@@ -1,7 +1,8 @@
 import torch
 import numpy as np
 from torch import nn
-from tqdm import tqdm, trange
+# from tqdm import tqdm, trange
+from lauges_tqdm import tqdm
 
 
 class CNN_class(nn.Module):
@@ -32,9 +33,9 @@ def train(model, dataloader, lr, weight_decay, n_epochs=10):
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
     criterion = torch.nn.CrossEntropyLoss()
 
-    for epoch in range(n_epochs):
+    for epoch in tqdm(n_epochs,0):
         # for batch in tqdm(dataloader):
-        for batch in dataloader:
+        for batch in tqdm(dataloader,1):
             im = torch.permute(batch[0], (0, 1, 3, 2))
             optimizer.zero_grad()
 
