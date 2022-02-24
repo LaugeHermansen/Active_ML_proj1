@@ -1,7 +1,8 @@
 import torch
 import numpy as np
 from torch import nn
-from tqdm import tqdm, trange
+# from tqdm import tqdm, trange
+from lauges_tqdm import tqdm
 
 
 class CNN_class(nn.Module):
