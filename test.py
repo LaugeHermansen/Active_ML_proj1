@@ -27,9 +27,9 @@ val_indices, test_indices = train_test_split(np.arange(len(test_set)), test_size
 validation_set = data_utils.Subset(test_set, val_indices)
 test_set = data_utils.Subset(test_set, test_indices)
 
-train_dl = DataLoader(training_set, batch_size=200)
-validation_dl = DataLoader(validation_set, batch_size=200)
-test_dl = DataLoader(test_set, batch_size=200)
+train_dl = DataLoader(training_set, batch_size=200, num_workers=20)
+validation_dl = DataLoader(validation_set, batch_size=200, num_workers=20)
+test_dl = DataLoader(test_set, batch_size=200, num_workers=20)
 
 #%%
 accuracies_val = []
