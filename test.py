@@ -11,95 +11,102 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import train_test_split
 
+
 def get_randoms(bounds, feature_type):
     return [np.random.randint(bounds[0, i], bounds[1, i] + 1) if feature else np.random.uniform(*bounds[:, i]) for
             i, feature in enumerate(feature_type)]
 
-transform = transforms.Compose([transforms.ToTensor()])
 
-training_set = datasets.EMNIST(root="./data", split="byclass", train=True,  download=True, transform=transform)
-test_set = datasets.EMNIST(root="./data", split="byclass", train=False,  download=True, transform=transform)
+if __name__ == '__main__':
+    DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+    DEVICE = 'cpu'
+    transform = transforms.Compose([transforms.ToTensor()])
 
-_, train_indices = train_test_split(np.arange(len(training_set)), test_size=0.1, stratify=training_set.targets)
-training_set = data_utils.Subset(training_set, train_indices)
+    training_set = datasets.EMNIST(root="./data", split="byclass", train=True,  download=True, transform=transform)
+    test_set = datasets.EMNIST(root="./data", split="byclass", train=False,  download=True, transform=transform)
 
-val_indices, test_indices = train_test_split(np.arange(len(test_set)), test_size=0.5, stratify=test_set.targets)
-validation_set = data_utils.Subset(test_set, val_indices)
-test_set = data_utils.Subset(test_set, test_indices)
+    _, train_indices = train_test_split(np.arange(len(training_set)), test_size=0.1, stratify=training_set.targets)
+    training_set = data_utils.Subset(training_set, train_indices)
 
-train_dl = DataLoader(training_set, batch_size=200)
-validation_dl = DataLoader(validation_set, batch_size=200)
-test_dl = DataLoader(test_set, batch_size=200)
+    val_indices, test_indices = train_test_split(np.arange(len(test_set)), test_size=0.5, stratify=test_set.targets)
+    validation_set = data_utils.Subset(test_set, val_indices)
+    test_set = data_utils.Subset(test_set, test_indices)
 
-#%%
-accuracies_val = []
-accuracies_test = []
-accuracies_val_random = []
-accuracies_test_random = []
-#bounds = torch.tensor([[1e-6, 1e-6, 1, 1],
-#                       [1/2, 1/2, 4, 4]])
-bounds = torch.tensor([[1.0, 1.0, 1.0, 1.0],
-                       [4.0, 4.0, 4.0, 4.0]])
-feature_type = [False, False, True, True] # lr, weight decay, width, depth
-hypers = [np.array(get_randoms(bounds, feature_type))]
-hypers_random = [np.array(get_randoms(bounds, feature_type))]
+    train_dl = DataLoader(training_set, batch_size=2000, num_workers=15)
+    validation_dl = DataLoader(validation_set, batch_size=2000, num_workers=15)
+    test_dl = DataLoader(test_set, batch_size=2000, num_workers=15)
 
-acquisitions = []
+    #%%
+    accuracies_val = []
+    accuracies_test = []
+    accuracies_val_random = []
+    accuracies_test_random = []
+    #bounds = torch.tensor([[1e-6, 1e-6, 1, 1],
+    #                       [1/2, 1/2, 4, 4]])
+    bounds = torch.tensor([[1.0, 1.0, 1.0, 1.0],
+                           [4.0, 4.0, 4.0, 4.0]])
+    feature_type = [False, False, True, True] # lr, weight decay, width, depth
+    hypers = [np.array(get_randoms(bounds, feature_type))]
+    hypers_random = [np.array(get_randoms(bounds, feature_type))]
 
-current_best = 0
-current_best_random = 0
+    acquisitions = []
 
-for i in range(5000):
-    # Instantiate and test model
-    net = model.CNN_class(width=hypers[-1][2], depth=hypers[-1][3])
-    model.train(net, train_dl, lr=10**(-hypers[-1][0]), weight_decay=10**(-hypers[-1][1]), n_epochs=2)
-    accuracy_val = model.test(net, validation_dl)
-    accuracy_test = model.test(net, test_dl)
+    current_best = 0
+    current_best_random = 0
 
-    if accuracy_val > current_best:
-        current_best = accuracy_val
-        torch.save(net.state_dict(), "best_model")
+    for i in range(5000):
+        # Instantiate and test model
+        net = model.CNN_class(width=hypers[-1][2], depth=hypers[-1][3])
+        net.cuda() if DEVICE == 'cuda' else net
+        model.train(net, train_dl, lr=10**(-hypers[-1][0]), weight_decay=10**(-hypers[-1][1]), n_epochs=2)
+        accuracy_val = model.test(net, validation_dl)
+        accuracy_test = model.test(net, test_dl)
 
-    # Track accuracy
-    accuracies_val.append(accuracy_val)
-    accuracies_test.append(accuracy_test)
+        if accuracy_val > current_best:
+            current_best = accuracy_val
+            torch.save(net.state_dict(), "best_model.pt")
 
-    np.save("hyperparameters", hypers)
-    np.save("accuracies_val", accuracies_val)
-    np.save("accuracies_test", accuracies_test)
+        # Track accuracy
+        accuracies_val.append(accuracy_val)
+        accuracies_test.append(accuracy_test)
 
-    # Get next hyper parameters
-    hyper_next, acqst = get_next_hyperparameters(
-        torch.tensor(hypers).reshape(-1, len(feature_type)),
-        torch.tensor(accuracies_val).reshape(-1, 1),
-        bounds=bounds,
-        feature_type=feature_type
-    )
+        np.save("hyperparameters", hypers)
+        np.save("accuracies_val", accuracies_val)
+        np.save("accuracies_test", accuracies_test)
 
-    #Save next hyperparameters and associated acquisition
-    hypers.append(hyper_next.detach().numpy().squeeze())
-    acquisitions.append(acqst)
-    print(i, accuracies_val[-1])
+        # Get next hyper parameters
+        hyper_next, acqst = get_next_hyperparameters(
+            torch.tensor(hypers).reshape(-1, len(feature_type)),
+            torch.tensor(accuracies_val).reshape(-1, 1),
+            bounds=bounds,
+            feature_type=feature_type
+        )
 
-    # Random model:
-    net = model.CNN_class(width=hypers_random[-1][2], depth=hypers_random[-1][3])
-    model.train(net, train_dl, lr=10**(-hypers_random[-1][0]), weight_decay=10**(-hypers_random[-1][1]), n_epochs=2)
-    accuracy_val = model.test(net, validation_dl)
-    accuracy_test = model.test(net, test_dl)
+        #Save next hyperparameters and associated acquisition
+        hypers.append(hyper_next.detach().numpy().squeeze())
+        acquisitions.append(acqst)
+        print(i, accuracies_val[-1])
 
-    if accuracy_val > current_best_random:
-        current_best_random = accuracy_val
-        torch.save(net.state_dict(), "best_model_random.pt")
+        # Random model:
+        net = model.CNN_class(width=hypers_random[-1][2], depth=hypers_random[-1][3])
+        net.cuda() if DEVICE == 'cuda' else net
+        model.train(net, train_dl, lr=10**(-hypers_random[-1][0]), weight_decay=10**(-hypers_random[-1][1]), n_epochs=2)
+        accuracy_val = model.test(net, validation_dl)
+        accuracy_test = model.test(net, test_dl)
 
-    # Track accuracy
-    accuracies_val_random.append(accuracy_val)
-    accuracies_test_random.append(accuracy_test)
+        if accuracy_val > current_best_random:
+            current_best_random = accuracy_val
+            torch.save(net.state_dict(), "best_model_random.pt")
 
-    np.save("hyperparameters_random", hypers_random)
-    np.save("accuracies_val_random", accuracies_val_random)
-    np.save("accuracies_test_random", accuracies_test_random)
+        # Track accuracy
+        accuracies_val_random.append(accuracy_val)
+        accuracies_test_random.append(accuracy_test)
 
-    hypers_random.append(np.array(get_randoms(bounds, feature_type)))
+        np.save("hyperparameters_random", hypers_random)
+        np.save("accuracies_val_random", accuracies_val_random)
+        np.save("accuracies_test_random", accuracies_test_random)
+
+        hypers_random.append(np.array(get_randoms(bounds, feature_type)))
 
 
 

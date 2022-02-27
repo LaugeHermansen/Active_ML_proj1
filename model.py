@@ -5,6 +5,9 @@ from torch import nn
 from lauges_tqdm import tqdm
 
 
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+DEVICE = 'cpu'
+
 class CNN_class(nn.Module):
     def __init__(self, width, depth, input_features=28, n_classes=62):
         super().__init__()
@@ -41,26 +44,30 @@ class CNN_class(nn.Module):
 def train(model, dataloader, lr, weight_decay, n_epochs=10):
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
     criterion = torch.nn.CrossEntropyLoss()
-
+    model.train()
     for epoch in range(n_epochs):
-        for batch in tqdm(dataloader):
-            im = torch.permute(batch[0], (0, 1, 3, 2))
+        for im, label in tqdm(dataloader):
+            im = torch.permute(im, (0, 1, 3, 2))
             optimizer.zero_grad()
+            im = im.to(DEVICE)
+            label = label.to(DEVICE)
+
 
             preds = model(im)
-            loss = criterion(preds, batch[1])
+            loss = criterion(preds, label)
             loss.backward()
             optimizer.step()
-            #print('\r', "stuff", end = '')
 
-
-    #print(np.mean(preds==y))
 
 def test(model, dataloader):
     corrects = []
-    for (im,y) in dataloader:
-        im = torch.permute(im, (0, 1, 3, 2))
-        corrects.append(model(im).argmax(dim=1) == y)
+    model.eval()
+    with torch.no_grad():
+        for im, label in dataloader:
+            im = torch.permute(im, (0, 1, 3, 2))
+            im = im.to(DEVICE)
+            label = label.to(DEVICE)
+            corrects.append(model(im).argmax(dim=1) == label)
 
-    acc = torch.cat(corrects).detach().numpy().mean()
+        acc = torch.cat(corrects).detach().cpu().numpy().mean()
     return acc
