@@ -18,7 +18,6 @@ def get_next_hyperparameters(X, y, bounds, feature_type):
 
     # Introduce GP
     gp = SingleTaskGP(X_norm, y)
-    
 
     # Fit hyperparameters of the GP
     mll = ExactMarginalLogLikelihood(gp.likelihood, gp)
