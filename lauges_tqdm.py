@@ -4,7 +4,7 @@ def tqdm(iterable, layer = 0, freq = 0.1, width = 50, n_child_layers = 5):
     """
     Parameters
     ---------
-    iterable:       iterable - if an int is provided it uses range(int) as iterable
+    iterable:       iterable - if an int or tuple is provided it uses range(int) as iterable
     layer:          the line nr on which the progress bar will print - 0-indexed
     freq:           the frequency with which the progress bar updates
     width:          width of progress bar
@@ -45,4 +45,6 @@ if __name__ == "__main__":
     #         time.sleep(0.03)
 
 
-    a = [(i,j) for j in tqdm(10000) for i in tqdm(10,1)]
+    # a = [(i,j) for j in tqdm(10000) for i in tqdm(10,1)]
+    a = (1,5)
+    for i in range(*tuple(a)): print(i)
