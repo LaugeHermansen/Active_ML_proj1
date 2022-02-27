@@ -25,16 +25,16 @@ if __name__ == '__main__':
     training_set = datasets.EMNIST(root="./data", split="byclass", train=True,  download=True, transform=transform)
     test_set = datasets.EMNIST(root="./data", split="byclass", train=False,  download=True, transform=transform)
 
-    _, train_indices = train_test_split(np.arange(len(training_set)), test_size=0.1, stratify=training_set.targets)
+    _, train_indices = train_test_split(np.arange(len(training_set)), test_size=0.4, stratify=training_set.targets)
     training_set = data_utils.Subset(training_set, train_indices)
 
     val_indices, test_indices = train_test_split(np.arange(len(test_set)), test_size=0.5, stratify=test_set.targets)
     validation_set = data_utils.Subset(test_set, val_indices)
     test_set = data_utils.Subset(test_set, test_indices)
 
-    train_dl = DataLoader(training_set, batch_size=2000, num_workers=15)
-    validation_dl = DataLoader(validation_set, batch_size=2000, num_workers=15)
-    test_dl = DataLoader(test_set, batch_size=2000, num_workers=15)
+    train_dl = DataLoader(training_set, batch_size=200, num_workers=20)
+    validation_dl = DataLoader(validation_set, batch_size=200, num_workers=20)
+    test_dl = DataLoader(test_set, batch_size=200, num_workers=20)
 
     #%%
     accuracies_val = []
@@ -54,7 +54,7 @@ if __name__ == '__main__':
     current_best = 0
     current_best_random = 0
 
-    for i in range(5000):
+    for i in range(1000):
         # Instantiate and test model
         net = model.CNN_class(width=hypers[-1][2], depth=hypers[-1][3])
         net.cuda() if DEVICE == 'cuda' else net
