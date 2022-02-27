@@ -17,8 +17,8 @@ def get_randoms(bounds, feature_type):
 
 transform = transforms.Compose([transforms.ToTensor()])
 
-training_set = datasets.EMNIST(root="./data", split="byclass", train=True,  download=False, transform=transform)
-test_set = datasets.EMNIST(root="./data", split="byclass", train=False,  download=False, transform=transform)
+training_set = datasets.EMNIST(root="./data", split="byclass", train=True,  download=True, transform=transform)
+test_set = datasets.EMNIST(root="./data", split="byclass", train=False,  download=True, transform=transform)
 
 _, train_indices = train_test_split(np.arange(len(training_set)), test_size=0.1, stratify=training_set.targets)
 training_set = data_utils.Subset(training_set, train_indices)
@@ -36,8 +36,10 @@ accuracies_val = []
 accuracies_test = []
 accuracies_val_random = []
 accuracies_test_random = []
-bounds = torch.tensor([[1e-6, 1e-6, 1, 1],
-                       [1/2, 1/2, 4, 4]])
+#bounds = torch.tensor([[1e-6, 1e-6, 1, 1],
+#                       [1/2, 1/2, 4, 4]])
+bounds = torch.tensor([[1.0, 1.0, 1.0, 1.0],
+                       [4.0, 4.0, 4.0, 4.0]])
 feature_type = [False, False, True, True] # lr, weight decay, width, depth
 hypers = [np.array(get_randoms(bounds, feature_type))]
 hypers_random = [np.array(get_randoms(bounds, feature_type))]
@@ -50,7 +52,7 @@ current_best_random = 0
 for i in range(5000):
     # Instantiate and test model
     net = model.CNN_class(width=hypers[-1][2], depth=hypers[-1][3])
-    model.train(net, train_dl, lr=hypers[-1][0], weight_decay=hypers[-1][1], n_epochs=2)
+    model.train(net, train_dl, lr=10**(-hypers[-1][0]), weight_decay=10**(-hypers[-1][1]), n_epochs=2)
     accuracy_val = model.test(net, validation_dl)
     accuracy_test = model.test(net, test_dl)
 
@@ -81,7 +83,7 @@ for i in range(5000):
 
     # Random model:
     net = model.CNN_class(width=hypers_random[-1][2], depth=hypers_random[-1][3])
-    model.train(net, train_dl, lr=hypers_random[-1][0], weight_decay=hypers_random[-1][1], n_epochs=2)
+    model.train(net, train_dl, lr=10**(-hypers_random[-1][0]), weight_decay=10**(-hypers_random[-1][1]), n_epochs=2)
     accuracy_val = model.test(net, validation_dl)
     accuracy_test = model.test(net, test_dl)
 
