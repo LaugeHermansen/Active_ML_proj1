@@ -58,7 +58,7 @@ for i in range(5000):
 
     if accuracy_val > current_best:
         current_best = accuracy_val
-        torch.save(net, "best_model")
+        torch.save(net.state_dict(), "best_model")
 
     # Track accuracy
     accuracies_val.append(accuracy_val)
@@ -89,7 +89,7 @@ for i in range(5000):
 
     if accuracy_val > current_best_random:
         current_best_random = accuracy_val
-        torch.save(net, "best_model_random")
+        torch.save(net.state_dict(), "best_model_random.pt")
 
     # Track accuracy
     accuracies_val_random.append(accuracy_val)
