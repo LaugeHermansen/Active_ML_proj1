@@ -9,8 +9,16 @@ from itertools import product
 
 
 def get_next_hyperparameters(X, y, bounds, feature_type):
+    # Normalize X
+    X_norm = (X - bounds[0, :]) / (bounds[1, :] - bounds[0, :])
+    
+    # Normalize bounds
+    bounds_norm = torch.tensor(np.ones_like(bounds))
+    bounds_norm[0, :] = 0
+
     # Introduce GP
-    gp = SingleTaskGP(X, y)
+    gp = SingleTaskGP(X_norm, y)
+    
 
     # Fit hyperparameters of the GP
     mll = ExactMarginalLogLikelihood(gp.likelihood, gp)
@@ -22,9 +30,14 @@ def get_next_hyperparameters(X, y, bounds, feature_type):
 
     candidate, acq_value = optimize_acqf_mixed(
         acquisition_fn,
-        fixed_features_list=generate_feature_list(bounds, feature_type),
-        bounds=bounds, q=1, num_restarts=1, raw_samples=1
+        fixed_features_list=generate_feature_list(bounds_norm, feature_type),
+        bounds=bounds_norm, q=1, num_restarts=1, raw_samples=1
     )
+
+
+    # Unnormalize
+    candidate = candidate * (bounds[1, :] - bounds[0, :]) + bounds[0, :]
+    
 
     # Return next hyperparameters to try, and the associated acquisition value
     return candidate, acq_value
