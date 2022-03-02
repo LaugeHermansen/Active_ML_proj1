@@ -113,7 +113,10 @@ def generate_plot(iteration, gif=False, nstart=10, hypers_path = "results/bootst
         cax = plt.axes([0.95, 0.1, 0.01, 0.8])
         plt.colorbar(cax=cax)
         f.suptitle(f"Posterior {title}, iteration {iteration-nstart}", fontsize=45)
-        plt.savefig(f"gif_plot/{name}{iteration-nstart}.png")
+        if gif:
+            plt.savefig(f"gif_plot/{name}{iteration-nstart}.png")
+        else:
+            plt.savefig(f"plot_of_{name}.png")
 
     grid_plot("Standard Deviation", "std", stds)
     grid_plot("Mean", "mean", means)
