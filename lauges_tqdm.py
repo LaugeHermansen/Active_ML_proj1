@@ -17,13 +17,17 @@ def tqdm(*iterable, layer = 0, freq = 0.1, width = 50, n_child_layers = 5):
     generator object that returns the elements in iterable, while printing the progress bar
     """
 
-    global global_layer
-    try: global_layer == 0
-    except: global_layer = 0
+    if not 'global_layer' in globals():
+        global global_layer, global_max_layer
+        global_layer = global_max_layer = 0
 
-    global global_max_layer
-    try: global_max_layer == 0
-    except: global_max_layer = 0
+    # global global_layer
+    # try: global_layer == 0
+    # except: global_layer = 0
+
+    # global global_max_layer
+    # try: global_max_layer == 0
+    # except: global_max_layer = 0
 
     global_layer += 1
     global_max_layer = max(global_layer, global_max_layer)
