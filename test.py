@@ -135,7 +135,7 @@ def optimize_model(name, new_hypers_fn, iterations, bootstrap_model_name = None)
     # Optimization loop
     print(f"Optimizing via {name}...")
     
-    for _ in tqdm(range(iterations), n_child_layers=3, freq=0.01):
+    for _ in tqdm(range(iterations), freq=0.01):
         # WARN: Ensure order of parameters are same as function
         new_accuracy_val, new_accuracy_test, model = train_test(*new_hypers)
 
@@ -180,12 +180,12 @@ if __name__ == '__main__':
     #     iterations=10
     # )
 
-    optimize_model(
-        name="bayesian_optimization", 
-        new_hypers_fn=get_bayesian_optimization_hypers_acq,
-        iterations=400,
-        bootstrap_model_name="bootstrap"
-    )
+    # optimize_model(
+    #     name="bayesian_optimization", 
+    #     new_hypers_fn=get_bayesian_optimization_hypers_acq,
+    #     iterations=400,
+    #     bootstrap_model_name="bootstrap"
+    # )
     
     optimize_model(
         name="random_optimizer", 
