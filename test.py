@@ -190,6 +190,6 @@ if __name__ == '__main__':
     optimize_model(
         name="random_optimizer", 
         new_hypers_fn=get_random_hypers_acq,
-        iterations=4,
+        iterations=400,
         bootstrap_model_name="bootstrap"
     )
