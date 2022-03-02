@@ -5,9 +5,10 @@ import torch
 from botorch.models import SingleTaskGP
 from botorch.fit import fit_gpytorch_model
 from gpytorch.mlls import ExactMarginalLogLikelihood
+from test import bounds as bounds_np, feature_type
 #from botorch.optim import optimize_acqf_mixed
 #from botorch.acquisition import UpperConfidenceBound, ExpectedImprovement
-def generate_plot(iteration, gif=False, nstart=10, random=False):
+def generate_plot(iteration, gif=False, nstart=10, hypers_path = "results/bootstrap_hyperparameters.npy", accs_path = "results/bootstrap_accuracies_val.npy"):
     """
     function to plot posterior mean and standard deviation for all 4x4 discrete dimensions of width and depth
     (If we extend our bounds we will need to do some manual modifications - sorry its not smarter...)
@@ -21,23 +22,17 @@ def generate_plot(iteration, gif=False, nstart=10, random=False):
     n_start:
         default 10 randomly initialized starting points
         To let function know how many random points the GP starts with
-    random:
-        boolean to ask if we plot the BO algorithm or the random algorithm 
-        Currently the data is taken from the following files:
-        - hyperparameters_random.npy
-        - accuracies_val_random.npy
-        - hyperparameters.npy
-        - accuracies_val.npy
+    hypers_path: 
+        String path to numpy file with hyperparameters
+    accs_path:
+        String path to numpy file with validation accuracies
     """
-    feature_type = [False, False, True, True] # lr, weight decay, width, depth
-    bounds = torch.tensor([[1.0, 1.0, 1.0, 1.0],[4.0, 4.0, 4.0, 4.0]])
-    
-    if random:
-        hypers = np.load('hyperparameters_random.npy')
-        accs = np.load('accuracies_val_random.npy')  
-    else:  
-        hypers = np.load('hyperparameters.npy')
-        accs = np.load('accuracies_val.npy')
+    # Redefine bounds from numpy array to torch tensor
+    bounds = torch.tensor(bounds_np)
+
+
+    hypers = np.load(hypers_path)
+    accs = np.load(accs_path)  
 
     hypers = hypers[:iteration]
     accs = accs[:iteration]
@@ -124,4 +119,10 @@ def generate_plot(iteration, gif=False, nstart=10, random=False):
     grid_plot("Mean", "mean", means)
     
 #Til Torben: bare brug denne kommando, gif generere vi imorgen
-generate_plot(iteration=100, gif=False, nstart=0, random=False)
+generate_plot(
+    iteration=100, 
+    gif=False, 
+    nstart=10, 
+    hypers_path = "results/bayesian_optimization_hyperparameters.npy", 
+    accs_path = "results/bayesian_optimization_accuracies_val.npy"
+)
