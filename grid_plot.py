@@ -128,9 +128,9 @@ def generate_plot(iteration, gif=False, nstart=10, hypers_path = "results/bootst
     
 #Til Torben: bare brug denne kommando, gif generere vi imorgen
 generate_plot(
-    iteration=10, 
+    iteration=400, 
     gif=False, 
     nstart=10, 
-    hypers_path = "results/bootstrap_hyperparameters.npy", 
-    accs_path = "results/bootstrap_accuracies_val.npy"
+    hypers_path = "results/random_optimizer_hyperparameters.npy", 
+    accs_path = "results/random_optimizer_accuracies_val.npy"
 )
