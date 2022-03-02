@@ -1,7 +1,7 @@
 from datetime import datetime
 
 
-def tqdm(iterable, layer = 0, freq = 0.1, width = 50, n_child_layers = 5):
+def tqdm(*iterable, layer = 0, freq = 0.1, width = 50, n_child_layers = 5):
     """
     Parameters
     ---------
@@ -29,8 +29,8 @@ def tqdm(iterable, layer = 0, freq = 0.1, width = 50, n_child_layers = 5):
     global_max_layer = max(global_layer, global_max_layer)
 
 
-    
-    if type(iterable) == int: iterable = range(*tuple(iterable))
+    if type(iterable[0]) == int: iterable = range(*iterable)
+
     n = len(iterable)
     lines_temp = ["|"]*width
     spaces_temp = [" "]*width
