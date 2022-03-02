@@ -135,7 +135,7 @@ def optimize_model(name, new_hypers_fn, iterations, bootstrap_model_name = None)
     # Optimization loop
     print(f"Optimizing via {name}...")
     
-    for _ in tqdm(range(iterations), n_child_layers=3):
+    for _ in tqdm(range(iterations), n_child_layers=3, freq=0.01):
         # WARN: Ensure order of parameters are same as function
         new_accuracy_val, new_accuracy_test, model = train_test(*new_hypers)
 
