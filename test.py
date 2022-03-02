@@ -180,12 +180,12 @@ if __name__ == '__main__':
     #     iterations=10
     # )
 
-    optimize_model(
-        name="bayesian_optimization", 
-        new_hypers_fn=get_bayesian_optimization_hypers_acq,
-        iterations=400,
-        bootstrap_model_name="bootstrap"
-    )
+    # optimize_model(
+    #     name="bayesian_optimization", 
+    #     new_hypers_fn=get_bayesian_optimization_hypers_acq,
+    #     iterations=400,
+    #     bootstrap_model_name="bootstrap"
+    # )
     
     optimize_model(
         name="random_optimizer", 
