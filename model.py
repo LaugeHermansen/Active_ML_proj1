@@ -45,8 +45,8 @@ def train(model, dataloader, lr, weight_decay, n_epochs=10):
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
     criterion = torch.nn.CrossEntropyLoss()
     model.train()
-    for epoch in range(n_epochs):
-        for im, label in tqdm(dataloader):
+    for epoch in tqdm(range(n_epochs), layer = 1):
+        for im, label in tqdm(dataloader, layer = 2):
             im = torch.permute(im, (0, 1, 3, 2))
             optimizer.zero_grad()
             im = im.to(DEVICE)
