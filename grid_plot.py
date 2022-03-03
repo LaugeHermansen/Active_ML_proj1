@@ -6,8 +6,9 @@ from botorch.models import SingleTaskGP
 from botorch.fit import fit_gpytorch_model
 from gpytorch.mlls import ExactMarginalLogLikelihood
 from test import bounds as bounds_np, feature_type
-#from botorch.optim import optimize_acqf_mixed
-#from botorch.acquisition import UpperConfidenceBound, ExpectedImprovement
+from botorch.acquisition import UpperConfidenceBound, ExpectedImprovement
+
+# %%
 
 def generate_plot(iteration, gif=False, nstart=10, hypers_path = "results/bootstrap_hyperparameters.npy", accs_path = "results/bootstrap_accuracies_val.npy"):
     """
@@ -17,6 +18,7 @@ def generate_plot(iteration, gif=False, nstart=10, hypers_path = "results/bootst
     Parameters
     ----------
     iteration:
+        iteration number has to include the nstart points
         number of points the GP should be trained with and that are plotted
         Ensure that iteration is smaller than or equal to the total length of the hyperparameter and accuracies arrays
     gif:    
@@ -65,11 +67,11 @@ def generate_plot(iteration, gif=False, nstart=10, hypers_path = "results/bootst
     mll = ExactMarginalLogLikelihood(gp.likelihood, gp)
     fit_gpytorch_model(mll)
 
-    #EI = ExpectedImprovement(gp, best_f=max(accs))
+    EI = ExpectedImprovement(gp, best_f=max(accs))
 
     means = np.zeros((4,4,N,N))
     stds = np.zeros((4,4,N,N))
-    #acqs = np.zeros((4,4,N,N))
+    eis = np.zeros((4,4,N,N))
 
     for depth in range(1,5):
         for width in range(1,5):
@@ -79,18 +81,18 @@ def generate_plot(iteration, gif=False, nstart=10, hypers_path = "results/bootst
             post_mean = gp.posterior(space_params_norm).mean
             post_var = gp.posterior(space_params_norm).variance
             
-            #ei = EI(space_params_norm).detach().numpy()
+            ei = EI(torch.unsqueeze(space_params_norm,1)).detach().numpy()
             
             post_mean = np.squeeze(post_mean.detach().numpy()).reshape((N,N))
             post_std = np.sqrt(np.squeeze(post_var.detach().numpy()).reshape((N,N)))
 
             means[depth-1, width-1] = post_mean
             stds[depth-1, width-1] = post_std
-            #eis[depth-1, width-1] = ei
+            eis[depth-1, width-1] = ei.reshape((N,N))
 
     def grid_plot(title, name, data):
-        max = np.max(data.squeeze())
-        min = np.min(data.squeeze())
+        max = np.max(data.flatten())
+        min = np.min(data.flatten())
         idx = 1
         f, axs = plt.subplots(4,4,figsize=(30,20))
         for width in range(1,5):
@@ -101,36 +103,84 @@ def generate_plot(iteration, gif=False, nstart=10, hypers_path = "results/bootst
                 mask1 = hypers[:,2].detach().numpy() == depth
                 mask2 = hypers[:,3].detach().numpy() == width
                 if gif:
-                    for p in hypers[mask1*mask2,:2].detach().numpy()[:-1]:
-                        plt.plot(p[1],p[0],'k*') # weight decay on x, learning rate on y
+                    for p in hypers[mask1*mask2,:2].detach().numpy():
+                        plt.plot(p[1],p[0],'k*',markersize=20) # weight decay on x, learning rate on y
                     if (mask1*mask2)[-1]:
                         last_point = hypers[mask1*mask2,:2].detach().numpy()[-1] # weight decay on x, learning rate on y
-                        plt.plot(last_point[1],last_point[0],'w*',markersize=20)
+                        plt.plot(last_point[1],last_point[0],'w*',markersize=25)
                 else:
                     mask3 = np.arange(iteration)[mask1*mask2]
                     for p, i in zip(hypers[mask1*mask2,:2].detach().numpy(),mask3):
-                        plt.plot(p[1],p[0],'*', color=str(i/iteration)) # weight decay on x, learning rate on y
+                        plt.plot(p[1],p[0],'*', color=str(i/(iteration)),markersize=25) # weight decay on x, learning rate on y
                 
                 plt.title(f'n_d: {depth}, n_w: {width}')
                 idx += 1
                 
         cax = plt.axes([0.95, 0.1, 0.01, 0.8])
-        plt.colorbar(cax=cax)
+        plt.colorbar(cax=cax, boundaries = (min, max))
         if gif:
-            f.suptitle(f"Posterior {title}, iteration {iteration-nstart}", fontsize=45)
+            f.suptitle(f"{title}, iteration {iteration-nstart}", fontsize=45)
             plt.savefig(f"gif_plot/{name}{iteration-nstart}.png")
         else:
-            f.suptitle(f"Posterior {title} of all {iteration} sampled datapoints", fontsize=45)
+            f.suptitle(f"{title} of {iteration-nstart} sampled datapoints", fontsize=45)
             plt.savefig(f"plot_of_{name}.png")
-
-    grid_plot("Standard Deviation", "std", stds)
-    grid_plot("Mean", "mean", means)
+    
+    grid_plot("Posterior Standard Deviation", "std", stds)
+    grid_plot("Posterior Mean", "mean", means)
+    grid_plot("Expected Improvement", "acq", eis)
     
 #Til Torben: bare brug denne kommando, gif generere vi imorgen
 generate_plot(
-    iteration=400, 
+    iteration=20, 
     gif=False, 
     nstart=10, 
-    hypers_path = "results/random_optimizer_hyperparameters.npy", 
-    accs_path = "results/random_optimizer_accuracies_val.npy"
+    hypers_path = "results/bayesian_optimization_hyperparameters.npy", 
+    accs_path = "results/bayesian_optimization_accuracies_val.npy"
 )
+
+# %%
+# Generate pictures for plot
+for i in range(50):
+    generate_plot(
+        iteration=i+10,
+        gif=True,
+        nstart=10,
+        hypers_path = "results/bayesian_optimization_hyperparameters.npy", 
+        accs_path = "results/bayesian_optimization_accuracies_val.npy"
+)
+
+# %%
+import imageio
+
+filenames_mean = []
+filenames_std = []
+filenames_acq = []
+
+for i in range(50):
+    filenames_mean.append(f"gif_plot/mean{i}.png")
+    filenames_mean.append(f"gif_plot/mean{i}.png")
+    filenames_mean.append(f"gif_plot/mean{i}.png")
+    filenames_std.append(f"gif_plot/std{i}.png")
+    filenames_std.append(f"gif_plot/std{i}.png")
+    filenames_std.append(f"gif_plot/std{i}.png")
+    filenames_acq.append(f"gif_plot/acq{i}.png")
+    filenames_acq.append(f"gif_plot/acq{i}.png")
+    filenames_acq.append(f"gif_plot/acq{i}.png")
+
+# build gif for mean
+with imageio.get_writer('posterior_mean.gif', mode='I') as writer:
+    for filename in filenames_mean:
+        image = imageio.imread(filename)
+        writer.append_data(image)
+
+# build gif for std
+with imageio.get_writer('posterior_std.gif', mode='I') as writer:
+    for filename in filenames_std:
+        image = imageio.imread(filename)
+        writer.append_data(image)
+
+# build gif for acq
+with imageio.get_writer('expected_improvement.gif', mode='I') as writer:
+    for filename in filenames_acq:
+        image = imageio.imread(filename)
+        writer.append_data(image)
