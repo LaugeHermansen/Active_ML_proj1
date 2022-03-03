@@ -102,14 +102,14 @@ def generate_plot(iteration, gif=False, nstart=10, hypers_path = "results/bootst
                 mask2 = hypers[:,3].detach().numpy() == width
                 if gif:
                     for p in hypers[mask1*mask2,:2].detach().numpy()[:-1]:
-                        plt.plot(p[1],p[0],'k*')
+                        plt.plot(p[1],p[0],'k*') # weight decay on x, learning rate on y
                     if (mask1*mask2)[-1]:
-                        last_point = hypers[mask1*mask2,:2].detach().numpy()[-1]
-                        plt.plot(last_point[0],last_point[1],'w*',markersize=20)
+                        last_point = hypers[mask1*mask2,:2].detach().numpy()[-1] # weight decay on x, learning rate on y
+                        plt.plot(last_point[1],last_point[0],'w*',markersize=20)
                 else:
                     mask3 = np.arange(iteration)[mask1*mask2]
                     for p, i in zip(hypers[mask1*mask2,:2].detach().numpy(),mask3):
-                        plt.plot(p[1],p[0],'*', color=str(i/iteration))
+                        plt.plot(p[1],p[0],'*', color=str(i/iteration)) # weight decay on x, learning rate on y
                 
                 plt.title(f'n_d: {depth}, n_w: {width}')
                 idx += 1
